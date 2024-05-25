@@ -1,0 +1,42 @@
+---
+title: "Agent Based Modelling:Age_Structured modelling"
+author: "Oluchukwu Okorie"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+This is a classwork to get graduation/maturation age
+Using a function where the data can be put as an arguement which has a default data 
+as the corresponding mid class point of different age groups in Nigeria and the percentile in Nigeria(Nte:Take a look at the age strata file in this project) and use it to fit  a data into a simple SIRS compartmental model and then fit to an agent-based Age Structured modelling
+
+### Loading the required Library and loading the data already present in this folder,Note since we are using a Rproject file we don't need to set working directory
+
+```{r cars}
+getwd()#Just to show the beauty of Rproject no need to set working directory
+library(minpack.lm)
+library(deSolve)
+library(readxl)
+demography <- read_excel("demography.xls")
+data <- read_excel("data.xls")
+```
+### Setting the default parameters
+where Lambda is the recruitment into the 
+```{r}
+Lamda = 3000;
+mu = 1/840;
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

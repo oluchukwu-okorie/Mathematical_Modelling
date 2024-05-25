@@ -1,0 +1,116 @@
+---
+title: "Agent Based Modelling:Age_Structured modelling"
+author: "Oluchukwu Okorie"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+This is a classwork to get graduation/maturation age
+Using a function where the data can be put as an arguement which has a default data 
+as the corresponding mid class point of different age groups in Nigeria and the percentile in Nigeria(Note:Take a look at the age strata file in this project) and use it to fit  a data into a simple SIRS compartmental model and then fit to an agent-based Age Structured modelling
+
+## Agent-based Modelling
+ABM is inherently mechanistic because it models the underlying mechanisms and interactions at the individual level to understand how they lead to emergent phenomena at the population level
+
+### Loading the required Library and loading the data
+Note the data is already present in this folder,Note since we are using a R project file we don't need to set working directory
+
+```{r cars}
+getwd()#Just to show the beauty of Rproject no need to set working directory
+library(minpack.lm)
+library(deSolve)
+library(readxl)
+demography <- read_excel("demography.xls")
+data <- read_excel("data.xls")
+```
+### Naming the outputs needed(Incidence in children and adults)
+```{r}
+time <- data$`Time(Month)`;
+Childeren_Incidence = data$`Under 10`;
+Adult_Incidence = data$`Above 10`
+Incidence = Adult_Incidence + Childeren_Incidence
+```
+### Ploting the Total incidence over time
+```{r}
+plot(time, Incidence, type = 'l', col = "red")
+#legend(time,Incidence,legend)#go to seg
+```
+
+### Computing the percentile for each group
+```{r}
+percentile = cumsum(demography$percentages)
+```
+### Naming the upper bound and lower bound
+```{r}
+##age
+lb = demography$lb
+ub = demography$ub
+age = 0.5*(lb[2:length(lb)] + ub[1:length(ub)-1])
+```
+## Modelling proper
+### Initiating values
+```{r}
+
+N0 = 2503200;
+I0 = 10;
+S0 = N0 - I0;
+R0 = 0;
+Inc0 = 0
+initialstate <- c(S0, I0, R0, Inc0);
+
+```
+
+### Setting the default parameters
+where Lambda is the recruitment into the general population
+```{r}
+Lamda = 3000;
+mu = 1/840;
+```
+### Defining our SIRS model
+```{r}
+SIRS <- function(t, state, parameters){
+  beta = parameters[1];
+  gamma = parameters[2];
+  omega = parameters[3];
+  
+  S = state[1];
+  I = state[2];
+  R = state[3];
+  N = S + I + R;
+  
+  dSdt = Lambda - beta*I*S/N + omega*R - mu*S;
+  dIdt = beta*I*S/N - gamma*I - mu*I;
+  dRdt = gamma*I - omega*R - mu*R;
+  dIncdt = beta*I*S/N;
+  list(c(dSdt, dIdt, dRdt, dIncdt));
+}
+```
+## Model Estimator
+Here we try to output the curve we are to use to fit the Model,using "<<" we can then 
+output the ode estimator output (out) and the ode incidence a.k.a the mechanistic curve
+(i.e the Mechanistic_inc variable) to the global scope
+```{r}
+ModelEstimator <- function(beta, gamma, omega){
+  out <<-ode(initialstate, c(0, time), SIRS, c(beta, gamma, omega))
+  Mechanistic_inc <<- diff(out[,5])
+}
+
+```
+### plotting the mechanistic incidence
+```{r}
+
+#plot(time,Mechanistic_inc,col ="green")
+```
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
